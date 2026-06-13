@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Promptdrop — Free AI Utility Tools</title>
+  <meta name="description" content="Free browser-based tools to help you work smarter with AI. Convert documents, count tokens, scrape websites, extract transcripts — no signup, no uploads." />
+  <meta name="keywords" content="ai tools, pdf to markdown, token counter, website to markdown, youtube transcript, free ai utilities, promptdrop" />
+  <link rel="canonical" href="https://promptdrop.vercel.app/" />
+  <meta property="og:title" content="Promptdrop — Free AI Utility Tools" />
+  <meta property="og:description" content="Free browser-based tools to help you work smarter with AI. No signup, no uploads, 100% private." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://promptdrop.vercel.app/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Promptdrop — Free AI Utility Tools" />
+  <meta name="twitter:description" content="Free browser-based tools to help you work smarter with AI." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0808'/%3E%3Cpath d='M8 24 L16 8 L24 24' stroke='%23ff2244' stroke-width='2.5' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M11 19 L21 19' stroke='%23ff66aa' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0a0808;
+      --bg2:      #120808;
+      --bg3:      #1e0a0a;
+      --bg4:      #2a0c0c;
+      --border:   rgba(220,0,0,0.12);
+      --border2:  rgba(220,0,0,0.25);
+      --border3:  rgba(220,0,0,0.4);
+      --red:      #ff2244;
+      --red2:     #cc0033;
+      --pink:     #ff66aa;
+      --pink2:    #cc4488;
+      --text:     #fff0f2;
+      --text2:    #cc9aa5;
+      --text3:    #7a5560;
+      --font-d:   'Sora', sans-serif;
+      --font-b:   'Inter', sans-serif;
+      --font-m:   'JetBrains Mono', monospace;
+      --r:        10px;
+      --rl:       16px;
+      --rxl:      22px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-b);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,34,68,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,34,68,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    * { position: relative; z-index: 1; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,8,8,0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 58px;
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+      font-family: var(--font-d);
+      font-size: 19px; font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.03em;
+    }
+    .nav-logo svg { flex-shrink: 0; }
+    .nav-logo .drop { color: var(--red); }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 2rem;
+    }
+    .nav-links a {
+      font-size: 13px; font-weight: 500;
+      color: var(--text3);
+      text-decoration: none;
+      transition: color 0.15s;
+      letter-spacing: 0.01em;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      font-size: 12px; font-weight: 600;
+      font-family: var(--font-m);
+      color: var(--red);
+      background: rgba(255,34,68,0.08);
+      border: 1px solid rgba(255,34,68,0.2);
+      border-radius: var(--r);
+      padding: 6px 14px;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: all 0.15s;
+    }
+    .nav-cta:hover {
+      background: rgba(255,34,68,0.14);
+      border-color: rgba(255,34,68,0.4);
+      color: var(--text);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 6rem 1.5rem 5rem;
+      text-align: center;
+    }
+
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-m);
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--pink);
+      background: rgba(255,102,170,0.07);
+      border: 1px solid rgba(255,102,170,0.18);
+      border-radius: 100px;
+      padding: 5px 14px;
+      margin-bottom: 2rem;
+    }
+    .hero-tag .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--pink);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    .hero h1 {
+      font-family: var(--font-d);
+      font-size: clamp(2.4rem, 6vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 .line2 {
+      display: block;
+      background: linear-gradient(90deg, var(--red), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 17px;
+      color: var(--text2);
+      max-width: 520px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-b);
+      font-size: 15px; font-weight: 600;
+      padding: 12px 28px;
+      background: var(--red);
+      color: #fff;
+      border: none; border-radius: var(--r);
+      cursor: pointer; text-decoration: none;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: -0.01em;
+    }
+    .btn-primary:hover { background: var(--red2); transform: translateY(-1px); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 15px; font-weight: 500;
+      padding: 12px 24px;
+      background: none;
+      color: var(--text2);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      cursor: pointer; text-decoration: none;
+      transition: all 0.15s;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--border3); background: var(--bg3); }
+
+    .hero-stats {
+      display: flex; gap: 2.5rem; justify-content: center;
+      margin-top: 3.5rem; flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-num {
+      font-family: var(--font-d);
+      font-size: 22px; font-weight: 700;
+      color: var(--text);
+      display: block;
+    }
+    .stat-label {
+      font-size: 12px; color: var(--text3);
+      font-family: var(--font-m);
+      letter-spacing: 0.05em;
+    }
+    .stat-divider {
+      width: 1px; background: var(--border2);
+      align-self: stretch;
+    }
+
+    /* ── SECTION ── */
+    .section {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 0 1.5rem 5rem;
+    }
+
+    .section-label {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 2rem;
+    }
+    .section-label .line {
+      flex: 1; height: 1px; background: var(--border);
+    }
+    .section-label span {
+      font-family: var(--font-m);
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    /* ── TOOLS GRID ── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--rxl);
+      overflow: hidden;
+    }
+
+    .tool-card {
+      background: var(--bg2);
+      padding: 2rem;
+      text-decoration: none;
+      display: block;
+      transition: background 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .tool-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,34,68,0.04), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .tool-card:hover { background: var(--bg3); }
+    .tool-card:hover::after { opacity: 1; }
+
+    .tool-card.coming-soon {
+      opacity: 0.5;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .tool-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: rgba(255,34,68,0.08);
+      border: 1px solid rgba(255,34,68,0.15);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 1.25rem;
+    }
+    .tool-card:hover .tool-icon {
+      background: rgba(255,34,68,0.14);
+      border-color: rgba(255,34,68,0.3);
+    }
+
+    .tool-tag {
+      display: inline-block;
+      font-family: var(--font-m);
+      font-size: 10px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--red);
+      background: rgba(255,34,68,0.08);
+      border: 1px solid rgba(255,34,68,0.15);
+      border-radius: 4px;
+      padding: 2px 7px;
+      margin-bottom: 10px;
+    }
+    .tool-tag.pink {
+      color: var(--pink);
+      background: rgba(255,102,170,0.08);
+      border-color: rgba(255,102,170,0.15);
+    }
+    .tool-tag.soon {
+      color: var(--text3);
+      background: rgba(122,85,96,0.1);
+      border-color: rgba(122,85,96,0.2);
+    }
+
+    .tool-name {
+      font-family: var(--font-d);
+      font-size: 17px; font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .tool-desc {
+      font-size: 13px;
+      color: var(--text3);
+      line-height: 1.65;
+    }
+
+    .tool-arrow {
+      position: absolute;
+      bottom: 1.5rem; right: 1.5rem;
+      font-size: 18px; color: var(--border3);
+      transition: all 0.15s;
+    }
+    .tool-card:hover .tool-arrow {
+      color: var(--red);
+      transform: translate(2px, -2px);
+    }
+
+    /* ── WHY SECTION ── */
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+    .why-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 1.75rem;
+      transition: border-color 0.15s;
+    }
+    .why-card:hover { border-color: var(--border2); }
+
+    .why-icon {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .why-title {
+      font-family: var(--font-d);
+      font-size: 15px; font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .why-desc {
+      font-size: 13px;
+      color: var(--text3);
+      line-height: 1.65;
+    }
+
+    /* ── BANNER ── */
+    .banner {
+      max-width: 1060px;
+      margin: 0 auto 5rem;
+      padding: 0 1.5rem;
+    }
+    .banner-inner {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--rxl);
+      padding: 3rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+      flex-wrap: wrap;
+      overflow: hidden;
+      position: relative;
+    }
+    .banner-inner::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,34,68,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .banner-text h2 {
+      font-family: var(--font-d);
+      font-size: 22px; font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+      letter-spacing: -0.03em;
+    }
+    .banner-text p {
+      font-size: 14px; color: var(--text3);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+    }
+    .footer-inner {
+      max-width: 1060px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-logo {
+      font-family: var(--font-d);
+      font-size: 15px; font-weight: 700;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+    .footer-logo span { color: var(--red); }
+    .footer-links {
+      display: flex; gap: 1.5rem;
+    }
+    .footer-links a {
+      font-size: 13px; color: var(--text3);
+      text-decoration: none; transition: color 0.15s;
+    }
+    .footer-links a:hover { color: var(--text2); }
+    .footer-copy {
+      font-size: 12px; color: var(--text3);
+      font-family: var(--font-m);
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 3px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .nav-links { display: none; }
+      .hero { padding: 4rem 1rem 3rem; }
+      .hero-stats { gap: 1.5rem; }
+      .stat-divider { display: none; }
+      .banner-inner { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/">
+    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="8" fill="#1e0a0a"/>
+      <path d="M8 24 L16 8 L24 24" stroke="#ff2244" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M11 19 L21 19" stroke="#ff66aa" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    Prompt<span class="drop">drop</span>
+  </a>
+  <div class="nav-links">
+    <a href="#tools">Tools</a>
+    <a href="#why">Why us</a>
+    <a href="tools/pdf-to-markdown.html">PDF to Markdown</a>
+  </div>
+  <a class="nav-cta" href="#tools">Browse tools →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">
+    <span class="dot"></span>
+    Free · No signup · 100% private
+  </div>
+
+  <h1>
+    Your AI works better<br />
+    <span class="line2">with the right input</span>
+  </h1>
+
+  <p class="hero-sub">
+    A growing set of free tools that help you get documents, websites, and data into the format your AI actually understands — right in your browser, no uploads, no accounts.
+  </p>
+
+  <div class="hero-actions">
+    <a class="btn-primary" href="#tools">Explore tools</a>
+    <a class="btn-ghost" href="tools/pdf-to-markdown.html">Try PDF → Markdown</a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <span class="stat-num" id="totalConversions">—</span>
+      <span class="stat-label">files converted</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">4</span>
+      <span class="stat-label">tools available</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">0</span>
+      <span class="stat-label">files uploaded to servers</span>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="section" id="tools">
+  <div class="section-label">
+    <div class="line"></div>
+    <span>All tools</span>
+    <div class="line"></div>
+  </div>
+
+  <div class="tools-grid">
+
+    <!-- PDF to Markdown -->
+    <a class="tool-card" href="tools/pdf-to-markdown.html">
+      <div class="tool-icon">📄</div>
+      <div class="tool-tag">Document</div>
+      <div class="tool-name">PDF → Markdown</div>
+      <div class="tool-desc">Convert PDF, Word, HTML, and TXT files to clean Markdown. Batch upload, side-by-side preview, download as .md, .txt, or .html.</div>
+      <span class="tool-arrow">↗</span>
+    </a>
+
+    <!-- Token Counter -->
+    <a class="tool-card" href="tools/token-counter.html">
+      <div class="tool-icon">🔢</div>
+      <div class="tool-tag pink">AI Utility</div>
+      <div class="tool-name">Token Counter</div>
+      <div class="tool-desc">Paste any text and instantly see token counts for GPT-4, Claude, and Gemini. Know your context limits before you hit them.</div>
+      <span class="tool-arrow">↗</span>
+    </a>
+
+    <!-- Website to Markdown -->
+    <a class="tool-card coming-soon" href="#">
+      <div class="tool-icon">🌐</div>
+      <div class="tool-tag soon">Coming soon</div>
+      <div class="tool-name">Website → Markdown</div>
+      <div class="tool-desc">Paste any URL and get the page content as clean Markdown — ready to feed directly into any AI model.</div>
+    </a>
+
+    <!-- YouTube Transcript -->
+    <a class="tool-card coming-soon" href="#">
+      <div class="tool-icon">▶️</div>
+      <div class="tool-tag soon">Coming soon</div>
+      <div class="tool-name">YouTube Transcript</div>
+      <div class="tool-desc">Paste a YouTube link and get the full transcript as plain text or Markdown — perfect for summarising with AI.</div>
+    </a>
+
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="section" id="why">
+  <div class="section-label">
+    <div class="line"></div>
+    <span>Why Promptdrop</span>
+    <div class="line"></div>
+  </div>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <span class="why-icon">🔒</span>
+      <div class="why-title">Nothing leaves your device</div>
+      <p class="why-desc">Every tool runs entirely in your browser. Your files, text, and data are never sent to any server. What you paste stays with you.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">⚡</span>
+      <div class="why-title">Fast and no friction</div>
+      <p class="why-desc">No signup, no account, no extension to install. Open a tool, use it, done. Every tool is one page with one job.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">🛠</span>
+      <div class="why-title">Built for AI workflows</div>
+      <p class="why-desc">Every tool is designed around one problem — getting the right content into the right format so your AI gives better answers.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">📦</span>
+      <div class="why-title">Always free</div>
+      <p class="why-desc">No paywalls, no limits, no premium tiers. Every tool is free to use as much as you want. We keep the lights on with unobtrusive ads.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<div class="banner">
+  <div class="banner-inner">
+    <div class="banner-text">
+      <h2>More tools dropping soon</h2>
+      <p>Website to Markdown and YouTube Transcript are almost ready. Check back soon.</p>
+    </div>
+    <a class="btn-primary" href="#tools">Start with what's live →</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a class="footer-logo" href="/">Prompt<span>drop</span></a>
+    <div class="footer-links">
+      <a href="tools/pdf-to-markdown.html">PDF to Markdown</a>
+      <a href="tools/token-counter.html">Token Counter</a>
+      <a href="#why">About</a>
+    </div>
+    <span class="footer-copy">© 2025 Promptdrop — 100% client-side</span>
+  </div>
+</footer>
+
+<script>
+  const total = parseInt(localStorage.getItem('pdflit_total') || '0');
+  const el = document.getElementById('totalConversions');
+  if (el) el.textContent = total > 0 ? total.toLocaleString() : '0';
+</script>
+
+</body>
+</html>
