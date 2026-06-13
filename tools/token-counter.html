@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Token Counter — Promptdrop</title>
+  <meta name="description" content="Free token counter for GPT-4, Claude, and Gemini. Paste any text and instantly see how many tokens it uses across all major AI models." />
+  <meta name="keywords" content="token counter, gpt4 tokens, claude tokens, gemini tokens, ai token count, context window, free token counter" />
+  <link rel="canonical" href="https://promptdrop.vercel.app/tools/token-counter.html" />
+  <meta property="og:title" content="Token Counter — Promptdrop" />
+  <meta property="og:description" content="Instantly count tokens for GPT-4, Claude, and Gemini. Free, runs in your browser." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0808'/%3E%3Cpath d='M8 24 L16 8 L24 24' stroke='%23ff2244' stroke-width='2.5' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M11 19 L21 19' stroke='%23ff66aa' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0a0808;
+      --bg2:     #120808;
+      --bg3:     #1e0a0a;
+      --bg4:     #2a0c0c;
+      --border:  rgba(220,0,0,0.12);
+      --border2: rgba(220,0,0,0.25);
+      --border3: rgba(220,0,0,0.4);
+      --red:     #ff2244;
+      --red2:    #cc0033;
+      --pink:    #ff66aa;
+      --text:    #fff0f2;
+      --text2:   #cc9aa5;
+      --text3:   #7a5560;
+      --font-d:  'Sora', sans-serif;
+      --font-b:  'Inter', sans-serif;
+      --font-m:  'JetBrains Mono', monospace;
+      --r:       10px;
+      --rl:      16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-b);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,34,68,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,34,68,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+
+    * { position: relative; z-index: 1; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,8,8,0.9);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 52px;
+    }
+    .back-link {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500;
+      color: var(--text3); text-decoration: none;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--text2); }
+    .nav-brand {
+      font-family: var(--font-d);
+      font-size: 16px; font-weight: 800;
+      color: var(--text); text-decoration: none;
+      letter-spacing: -0.03em;
+    }
+    .nav-brand span { color: var(--red); }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 720px; margin: 0 auto;
+      padding: 4rem 1.5rem 2.5rem;
+      text-align: center;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-m);
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--pink);
+      background: rgba(255,102,170,0.07);
+      border: 1px solid rgba(255,102,170,0.18);
+      border-radius: 100px;
+      padding: 5px 14px; margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-family: var(--font-d);
+      font-size: clamp(1.9rem, 4vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--red), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 15px; color: var(--text2);
+      max-width: 480px; margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── MAIN ── */
+    .main {
+      max-width: 900px; margin: 0 auto;
+      padding: 0 1.5rem 5rem;
+    }
+
+    /* ── TEXTAREA ── */
+    .input-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .input-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .input-label {
+      font-size: 12px; font-weight: 500;
+      font-family: var(--font-m);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text3);
+    }
+    .input-actions { display: flex; gap: 8px; }
+    .btn-sm {
+      font-size: 12px; font-weight: 500;
+      font-family: var(--font-b);
+      padding: 5px 12px;
+      border-radius: 7px;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      color: var(--text3);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-sm:hover { color: var(--text); background: var(--bg4); border-color: var(--border3); }
+
+    textarea {
+      width: 100%; min-height: 220px;
+      background: transparent;
+      border: none; outline: none;
+      color: var(--text);
+      font-family: var(--font-b);
+      font-size: 14px; line-height: 1.75;
+      padding: 1.25rem 1.5rem;
+      resize: vertical;
+    }
+    textarea::placeholder { color: var(--text3); }
+
+    .input-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .char-count {
+      font-family: var(--font-m);
+      font-size: 12px; color: var(--text3);
+    }
+    .char-count span { color: var(--text2); }
+
+    /* ── MODEL CARDS ── */
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .model-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 1.5rem;
+      transition: border-color 0.15s;
+    }
+    .model-card:hover { border-color: var(--border2); }
+
+    .model-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+    .model-logo {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .model-name {
+      font-family: var(--font-d);
+      font-size: 14px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.02em;
+    }
+    .model-sub {
+      font-size: 11px; color: var(--text3);
+      font-family: var(--font-m);
+    }
+
+    .token-display {
+      margin-bottom: 1rem;
+    }
+    .token-num {
+      font-family: var(--font-d);
+      font-size: 2.2rem; font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .token-label {
+      font-size: 12px; color: var(--text3);
+      font-family: var(--font-m);
+      letter-spacing: 0.05em;
+    }
+
+    /* Progress bar */
+    .context-bar {
+      margin-bottom: 8px;
+    }
+    .context-bar-track {
+      height: 4px;
+      background: var(--bg4);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .context-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    .context-meta {
+      display: flex; justify-content: space-between;
+      font-size: 11px; font-family: var(--font-m);
+      color: var(--text3);
+    }
+    .context-meta .used { font-weight: 500; }
+    .context-meta .used.safe { color: #4ade80; }
+    .context-meta .used.warn { color: #fbbf24; }
+    .context-meta .used.danger { color: var(--red); }
+
+    .model-versions {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .version-row {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .version-name {
+      font-size: 12px; color: var(--text3);
+      font-family: var(--font-m);
+    }
+    .version-tokens {
+      font-size: 12px; font-weight: 500;
+      font-family: var(--font-m);
+      color: var(--text2);
+    }
+    .version-limit {
+      font-size: 11px; color: var(--text3);
+      font-family: var(--font-m);
+    }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1rem 1.25rem;
+    }
+    .stat-card .s-num {
+      font-family: var(--font-d);
+      font-size: 1.4rem; font-weight: 700;
+      color: var(--text); letter-spacing: -0.03em;
+      display: block; margin-bottom: 2px;
+    }
+    .stat-card .s-label {
+      font-size: 11px; color: var(--text3);
+      font-family: var(--font-m);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── INFO SECTION ── */
+    .info-section {
+      margin-top: 3rem;
+      padding-top: 3rem;
+      border-top: 1px solid var(--border);
+    }
+    .section-label {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;
+    }
+    .section-label .line { flex: 1; height: 1px; background: var(--border); }
+    .section-label span {
+      font-family: var(--font-m);
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text3); white-space: nowrap;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .info-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.25rem;
+    }
+    .info-card h3 {
+      font-family: var(--font-d);
+      font-size: 13px; font-weight: 700;
+      color: var(--text); margin-bottom: 6px;
+    }
+    .info-card p {
+      font-size: 12px; color: var(--text3); line-height: 1.6;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .footer-inner {
+      max-width: 900px; margin: 0 auto;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-logo {
+      font-family: var(--font-d); font-size: 14px;
+      font-weight: 700; color: var(--text3);
+      text-decoration: none; letter-spacing: -0.02em;
+    }
+    .footer-logo span { color: var(--red); }
+    .footer-copy { font-size: 12px; color: var(--text3); font-family: var(--font-m); }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 3px; }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .hero { padding: 3rem 1rem 2rem; }
+      .models-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── TRIM PANEL ── */
+    .trim-panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .trim-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .trim-title {
+      font-family: var(--font-d);
+      font-size: 14px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .trim-title .badge {
+      font-family: var(--font-m);
+      font-size: 10px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--pink);
+      background: rgba(255,102,170,0.08);
+      border: 1px solid rgba(255,102,170,0.18);
+      border-radius: 4px;
+      padding: 2px 7px;
+    }
+    .trim-body { padding: 1.25rem 1.5rem; }
+    .trim-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    .trim-option {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .trim-option:hover { border-color: var(--border2); background: var(--bg4); }
+    .trim-option.active { border-color: var(--border3); background: rgba(255,34,68,0.05); }
+    .trim-option input[type=checkbox] {
+      margin-top: 2px; flex-shrink: 0;
+      accent-color: var(--red);
+      width: 14px; height: 14px;
+    }
+    .trim-option-text { flex: 1; }
+    .trim-option-label {
+      font-size: 13px; font-weight: 500;
+      color: var(--text); display: block; margin-bottom: 2px;
+    }
+    .trim-option-desc {
+      font-size: 11px; color: var(--text3);
+      font-family: var(--font-m);
+    }
+    .trim-target {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 1.25rem; flex-wrap: wrap;
+    }
+    .trim-target label {
+      font-size: 13px; color: var(--text2); font-weight: 500;
+      white-space: nowrap;
+    }
+    .trim-target select {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      color: var(--text);
+      font-family: var(--font-m);
+      font-size: 12px;
+      padding: 6px 10px;
+      outline: none;
+      cursor: pointer;
+    }
+    .trim-target select:focus { border-color: var(--border3); }
+    .trim-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .btn-trim {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 14px; font-weight: 600;
+      padding: 9px 20px;
+      background: var(--red);
+      color: #fff; border: none;
+      border-radius: var(--r);
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: var(--font-b);
+    }
+    .btn-trim:hover { background: var(--red2); }
+    .btn-trim:disabled { opacity: 0.4; cursor: not-allowed; }
+    .trim-savings {
+      font-family: var(--font-m);
+      font-size: 12px; color: var(--text3);
+    }
+    .trim-savings .saved { color: #4ade80; font-weight: 500; }
+    .trim-output {
+      margin-top: 1.25rem;
+      display: none;
+    }
+    .trim-output.show { display: block; }
+    .trim-output-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .trim-output-label {
+      font-size: 12px; color: var(--text3);
+      font-family: var(--font-m); text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .trim-output textarea {
+      width: 100%; min-height: 140px;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      color: var(--text);
+      font-family: var(--font-b);
+      font-size: 13px; line-height: 1.7;
+      padding: 1rem 1.25rem;
+      resize: vertical; outline: none;
+    }
+    .trim-output textarea:focus { border-color: var(--border3); }
+
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="back-link" href="../index.html">← All tools</a>
+  <a class="nav-brand" href="../index.html">Prompt<span>drop</span></a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">⬡ AI Utility</div>
+  <h1>Know your <em>token count</em><br />before you hit the limit</h1>
+  <p class="hero-sub">Paste any text and instantly see how many tokens it uses across GPT-4, Claude, and Gemini — and how much of each model's context window you're using.</p>
+</section>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- STATS ROW -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="s-num" id="statChars">0</span>
+      <span class="s-label">Characters</span>
+    </div>
+    <div class="stat-card">
+      <span class="s-num" id="statWords">0</span>
+      <span class="s-label">Words</span>
+    </div>
+    <div class="stat-card">
+      <span class="s-num" id="statLines">0</span>
+      <span class="s-label">Lines</span>
+    </div>
+    <div class="stat-card">
+      <span class="s-num" id="statSentences">0</span>
+      <span class="s-label">Sentences</span>
+    </div>
+  </div>
+
+  <!-- INPUT -->
+  <div class="input-card">
+    <div class="input-header">
+      <span class="input-label">Your text</span>
+      <div class="input-actions">
+        <button class="btn-sm" onclick="pasteText()">Paste</button>
+        <button class="btn-sm" onclick="clearText()">Clear</button>
+        <button class="btn-sm" onclick="loadSample()">Load sample</button>
+      </div>
+    </div>
+    <textarea
+      id="inputText"
+      placeholder="Paste your prompt, document, or any text here — token counts update instantly as you type..."
+      oninput="onInput()"
+    ></textarea>
+    <div class="input-footer">
+      <span class="char-count"><span id="charCount">0</span> characters</span>
+      <span class="char-count">Updates instantly</span>
+    </div>
+  </div>
+
+  <!-- MODEL CARDS -->
+  <div class="models-grid">
+
+    <!-- GPT-4 -->
+    <div class="model-card">
+      <div class="model-header">
+        <div class="model-logo" style="background:rgba(16,163,127,0.12);border:1px solid rgba(16,163,127,0.2)">🤖</div>
+        <div>
+          <div class="model-name">OpenAI / GPT</div>
+          <div class="model-sub">tiktoken cl100k_base</div>
+        </div>
+      </div>
+      <div class="token-display">
+        <div class="token-num" id="gptTokens" style="color:#10a37f">0</div>
+        <div class="token-label">tokens</div>
+      </div>
+      <div class="context-bar">
+        <div class="context-bar-track">
+          <div class="context-bar-fill" id="gpt4bar" style="background:#10a37f;width:0%"></div>
+        </div>
+        <div class="context-meta">
+          <span class="used safe" id="gpt4pct">0%</span>
+          <span>128k context (GPT-4o)</span>
+        </div>
+      </div>
+      <div class="model-versions">
+        <div class="version-row">
+          <span class="version-name">GPT-4o</span>
+          <span class="version-tokens" id="gpt4o">0 tk</span>
+          <span class="version-limit">128k ctx</span>
+        </div>
+        <div class="version-row">
+          <span class="version-name">GPT-4 Turbo</span>
+          <span class="version-tokens" id="gpt4t">0 tk</span>
+          <span class="version-limit">128k ctx</span>
+        </div>
+        <div class="version-row">
+          <span class="version-name">GPT-3.5 Turbo</span>
+          <span class="version-tokens" id="gpt35">0 tk</span>
+          <span class="version-limit">16k ctx</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Claude -->
+    <div class="model-card">
+      <div class="model-header">
+        <div class="model-logo" style="background:rgba(205,127,50,0.12);border:1px solid rgba(205,127,50,0.2)">🧠</div>
+        <div>
+          <div class="model-name">Anthropic / Claude</div>
+          <div class="model-sub">~same as cl100k_base</div>
+        </div>
+      </div>
+      <div class="token-display">
+        <div class="token-num" id="claudeTokens" style="color:#cd7f32">0</div>
+        <div class="token-label">tokens</div>
+      </div>
+      <div class="context-bar">
+        <div class="context-bar-track">
+          <div class="context-bar-fill" id="claudebar" style="background:#cd7f32;width:0%"></div>
+        </div>
+        <div class="context-meta">
+          <span class="used safe" id="claudepct">0%</span>
+          <span>200k context (Claude 3)</span>
+        </div>
+      </div>
+      <div class="model-versions">
+        <div class="version-row">
+          <span class="version-name">Claude 3.5 Sonnet</span>
+          <span class="version-tokens" id="c35s">0 tk</span>
+          <span class="version-limit">200k ctx</span>
+        </div>
+        <div class="version-row">
+          <span class="version-name">Claude 3 Opus</span>
+          <span class="version-tokens" id="c3o">0 tk</span>
+          <span class="version-limit">200k ctx</span>
+        </div>
+        <div class="version-row">
+          <span class="version-name">Claude 3 Haiku</span>
+          <span class="version-tokens" id="c3h">0 tk</span>
+          <span class="version-limit">200k ctx</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gemini -->
+    <div class="model-card">
+      <div class="model-header">
+        <div class="model-logo" style="background:rgba(66,133,244,0.12);border:1px solid rgba(66,133,244,0.2)">✦</div>
+        <div>
+          <div class="model-name">Google / Gemini</div>
+          <div class="model-sub">SentencePiece approx.</div>
+        </div>
+      </div>
+      <div class="token-display">
+        <div class="token-num" id="geminiTokens" style="color:#4285f4">0</div>
+        <div class="token-label">tokens</div>
+      </div>
+      <div class="context-bar">
+        <div class="context-bar-track">
+          <div class="context-bar-fill" id="geminibar" style="background:#4285f4;width:0%"></div>
+        </div>
+        <div class="context-meta">
+          <span class="used safe" id="geminipct">0%</span>
+          <span>1M context (Gemini 1.5)</span>
+        </div>
+      </div>
+      <div class="model-versions">
+        <div class="version-row">
+          <span class="version-name">Gemini 1.5 Pro</span>
+          <span class="version-tokens" id="g15p">0 tk</span>
+          <span class="version-limit">1M ctx</span>
+        </div>
+        <div class="version-row">
+          <span class="version-name">Gemini 1.5 Flash</span>
+          <span class="version-tokens" id="g15f">0 tk</span>
+          <span class="version-limit">1M ctx</span>
+        </div>
+        <div class="version-row">
+          <span class="version-name">Gemini 1.0 Pro</span>
+          <span class="version-tokens" id="g10p">0 tk</span>
+          <span class="version-limit">32k ctx</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- TRIM PANEL -->
+  <div class="trim-panel" id="trimPanel">
+    <div class="trim-header">
+      <div class="trim-title">
+        ✂ Optimise
+        <span class="badge">Auto</span>
+      </div>
+      <span style="font-size:12px;color:var(--text3);font-family:var(--font-m)">Remove waste, keep meaning</span>
+    </div>
+    <div class="trim-body">
+      <div class="trim-actions" style="margin-bottom:1.25rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button class="btn-trim" id="trimBtn" onclick="runTrim()" disabled>
+          ✂ Optimise text
+        </button>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer">
+          <input type="checkbox" id="opt-truncate" style="accent-color:var(--red);width:14px;height:14px" />
+          Truncate to fit
+          <select id="targetModel" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--font-m);font-size:12px;padding:5px 10px;outline:none;cursor:pointer">
+            <option value="128000">GPT-4o (128k)</option>
+            <option value="16000">GPT-3.5 Turbo (16k)</option>
+            <option value="200000">Claude 3.5 Sonnet (200k)</option>
+            <option value="1000000">Gemini 1.5 Pro (1M)</option>
+            <option value="32000">Gemini 1.0 Pro (32k)</option>
+          </select>
+        </label>
+        <span class="trim-savings" id="trimSavings"></span>
+      </div>
+
+      <div class="trim-output" id="trimOutput">
+        <div class="trim-output-header">
+          <span class="trim-output-label">Optimised output</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn-sm" onclick="copyTrimmed()">Copy</button>
+            <button class="btn-sm" onclick="replaceWithTrimmed()">Replace input</button>
+          </div>
+        </div>
+        <textarea id="trimResult" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="info-section">
+    <div class="section-label">
+      <div class="line"></div>
+      <span>What are tokens?</span>
+      <div class="line"></div>
+    </div>
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>Not quite words</h3>
+        <p>Tokens are chunks of text — roughly 3–4 characters each. "hamburger" is 3 tokens. "hello" is 1. Punctuation, spaces, and special characters all count.</p>
+      </div>
+      <div class="info-card">
+        <h3>Why it matters</h3>
+        <p>Every AI model has a context window — a maximum number of tokens it can process at once. Exceed it and your input gets cut off or rejected.</p>
+      </div>
+      <div class="info-card">
+        <h3>Costs money too</h3>
+        <p>API pricing is per token. A document that looks small can contain thousands of tokens. Knowing this upfront helps you plan and avoid surprise bills.</p>
+      </div>
+      <div class="info-card">
+        <h3>Model differences</h3>
+        <p>Each model uses a slightly different tokeniser. GPT and Claude are similar. Gemini uses a different method and typically produces fewer tokens for the same text.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a class="footer-logo" href="../index.html">Prompt<span>drop</span></a>
+    <span class="footer-copy">Token counts are estimates based on each model's tokenisation method</span>
+  </div>
+</footer>
+
+<script>
+  const MODELS = {
+    gpt4o:   { ctx: 128000 },
+    gpt4t:   { ctx: 128000 },
+    gpt35:   { ctx: 16000  },
+    c35s:    { ctx: 200000 },
+    c3o:     { ctx: 200000 },
+    c3h:     { ctx: 200000 },
+    g15p:    { ctx: 1000000 },
+    g15f:    { ctx: 1000000 },
+    g10p:    { ctx: 32000  },
+  };
+
+  // ── Tokenisers ──────────────────────────────
+  // GPT / Claude: cl100k_base approximation
+  // ~1 token per 4 chars, adjusted for whitespace and punctuation
+  function tokenizeGPT(text) {
+    if (!text) return 0;
+    // Split on whitespace, punctuation boundaries — rough cl100k approximation
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    let tokens = 0;
+    for (const word of words) {
+      // Short common words = 1 token, longer words get split
+      if (word.length <= 4) tokens += 1;
+      else if (word.length <= 8) tokens += Math.ceil(word.length / 4);
+      else tokens += Math.ceil(word.length / 3.5);
+    }
+    // Add tokens for punctuation and spaces
+    const punctMatches = text.match(/[.,!?;:'"()\[\]{}\-—–]/g);
+    tokens += punctMatches ? Math.ceil(punctMatches.length * 0.7) : 0;
+    return Math.max(1, Math.round(tokens));
+  }
+
+  // Claude: very similar to GPT, slight variance
+  function tokenizeClaude(text) {
+    if (!text) return 0;
+    return Math.round(tokenizeGPT(text) * 1.02);
+  }
+
+  // Gemini: SentencePiece — generally ~15% fewer tokens than cl100k
+  function tokenizeGemini(text) {
+    if (!text) return 0;
+    return Math.round(tokenizeGPT(text) * 0.87);
+  }
+
+  // ── Stats ──────────────────────────────────
+  function countWords(t)     { return t.trim() ? t.trim().split(/\s+/).length : 0; }
+  function countLines(t)     { return t ? t.split('\n').length : 0; }
+  function countSentences(t) { return t.trim() ? (t.match(/[.!?]+/g) || []).length || 1 : 0; }
+
+  function pctClass(pct) {
+    if (pct < 60) return 'safe';
+    if (pct < 85) return 'warn';
+    return 'danger';
+  }
+
+  function setBar(barId, pctId, tokens, ctx) {
+    const pct = Math.min(100, (tokens / ctx) * 100);
+    const bar = document.getElementById(barId);
+    const label = document.getElementById(pctId);
+    if (bar) bar.style.width = pct.toFixed(1) + '%';
+    if (label) {
+      label.textContent = pct.toFixed(1) + '%';
+      label.className = 'used ' + pctClass(pct);
+    }
+  }
+
+  function fmt(n) { return n.toLocaleString(); }
+
+  // ── Main update ────────────────────────────
+  function onInput() {
+    const text = document.getElementById('inputText').value;
+
+    // Stats
+    document.getElementById('charCount').textContent = fmt(text.length);
+    document.getElementById('statChars').textContent = fmt(text.length);
+    document.getElementById('statWords').textContent = fmt(countWords(text));
+    document.getElementById('statLines').textContent = fmt(countLines(text));
+    document.getElementById('statSentences').textContent = fmt(countSentences(text));
+
+    // Token counts
+    const gpt    = tokenizeGPT(text);
+    const claude = tokenizeClaude(text);
+    const gemini = tokenizeGemini(text);
+
+    // GPT
+    document.getElementById('gptTokens').textContent = fmt(gpt);
+    document.getElementById('gpt4o').textContent = fmt(gpt) + ' tk';
+    document.getElementById('gpt4t').textContent = fmt(gpt) + ' tk';
+    document.getElementById('gpt35').textContent = fmt(gpt) + ' tk';
+    setBar('gpt4bar', 'gpt4pct', gpt, 128000);
+
+    // Claude
+    document.getElementById('claudeTokens').textContent = fmt(claude);
+    document.getElementById('c35s').textContent = fmt(claude) + ' tk';
+    document.getElementById('c3o').textContent  = fmt(claude) + ' tk';
+    document.getElementById('c3h').textContent  = fmt(claude) + ' tk';
+    setBar('claudebar', 'claudepct', claude, 200000);
+
+    // Gemini
+    document.getElementById('geminiTokens').textContent = fmt(gemini);
+    document.getElementById('g15p').textContent = fmt(gemini) + ' tk';
+    document.getElementById('g15f').textContent = fmt(gemini) + ' tk';
+    document.getElementById('g10p').textContent = fmt(gemini) + ' tk';
+    setBar('geminibar', 'geminipct', gemini, 1000000);
+  }
+
+  // ── Actions ────────────────────────────────
+  async function pasteText() {
+    try {
+      const t = await navigator.clipboard.readText();
+      document.getElementById('inputText').value = t;
+      onInput();
+    } catch(e) {
+      alert('Clipboard access denied — please paste manually with Ctrl+V.');
+    }
+  }
+
+  function clearText() {
+    document.getElementById('inputText').value = '';
+    onInput();
+  }
+
+  function loadSample() {
+    const sample = `The transformer architecture has become the dominant paradigm in natural language processing. Originally introduced in "Attention Is All You Need" (Vaswani et al., 2017), transformers use self-attention mechanisms to process sequential data in parallel, overcoming the bottleneck of recurrent neural networks.
+
+At the core of the transformer is the attention mechanism, which allows the model to weigh the importance of different tokens when producing a representation. Given queries Q, keys K, and values V, attention is computed as: softmax(QK^T / sqrt(d_k)) * V.
+
+Modern large language models like GPT-4, Claude, and Gemini are built on this foundation, scaled to billions of parameters and trained on vast corpora of text. The emergent capabilities of these models — reasoning, code generation, creative writing — have made them central to the current AI landscape.`;
+
+    document.getElementById('inputText').value = sample;
+    onInput();
+  }
+
+
+  // ── Trim & Optimise ──────────────────────────
+  const FILLER_PHRASES = [
+    /\bin conclusion\b/gi, /\bto summarize\b/gi, /\bto summarise\b/gi,
+    /\bit is worth noting that\b/gi, /\bit should be noted that\b/gi,
+    /\bIt is important to note that\b/gi, /\bAs mentioned above\b/gi,
+    /\bAs mentioned earlier\b/gi, /\bIn other words\b/gi,
+    /\bAs a result of this\b/gi, /\bFor the purpose of\b/gi,
+    /\bDue to the fact that\b/gi, /\bIn the event that\b/gi,
+    /\bAt this point in time\b/gi, /\bIn terms of\b/gi,
+    /\bWith regard to\b/gi, /\bWith respect to\b/gi,
+    /\bBasically\b/gi, /\bEssentially\b/gi, /\bLiterally\b/gi,
+    /\bActually\b/gi, /\bDefinitely\b/gi, /\bCertainly\b/gi,
+  ];
+
+  function runTrim() {
+    let text = document.getElementById('inputText').value;
+    if (!text.trim()) return;
+
+    const before = tokenizeGPT(text);
+
+    if (document.getElementById('opt-whitespace').checked) {
+      text = text.replace(/[ \t]+/g, ' ');
+      text = text.replace(/[ \t]+$/gm, '');
+    }
+    if (document.getElementById('opt-newlines').checked) {
+      text = text.replace(/\n{3,}/g, '\n\n');
+    }
+    if (document.getElementById('opt-punct').checked) {
+      text = text.replace(/[—–•·※†‡§¶]/g, '-');
+      text = text.replace(/[""]/g, '"');
+      text = text.replace(/['']/g, "'");
+      text = text.replace(/…/g, '...');
+    }
+    if (document.getElementById('opt-filler').checked) {
+      for (const pattern of FILLER_PHRASES) {
+        text = text.replace(pattern, '');
+      }
+      text = text.replace(/  +/g, ' ').replace(/\n +/g, '\n');
+    }
+    if (document.getElementById('opt-lowercase').checked) {
+      text = text.toLowerCase();
+    }
+    if (document.getElementById('opt-truncate').checked) {
+      const limit = parseInt(document.getElementById('targetModel').value);
+      text = truncateToTokens(text, limit);
+    }
+
+    text = text.trim();
+    const after = tokenizeGPT(text);
+    const saved = before - after;
+    const pct = before > 0 ? ((saved / before) * 100).toFixed(1) : 0;
+
+    document.getElementById('trimResult').value = text;
+    document.getElementById('trimOutput').classList.add('show');
+
+    const savingsEl = document.getElementById('trimSavings');
+    if (saved > 0) {
+      savingsEl.innerHTML = `Saved <span class="saved">−${saved.toLocaleString()} tokens (${pct}%)</span>`;
+    } else {
+      savingsEl.innerHTML = `<span style="color:var(--text3)">No tokens saved with current options</span>`;
+    }
+  }
+
+  function truncateToTokens(text, limit) {
+    const words = text.split(/\s+/);
+    let result = [];
+    let count = 0;
+    for (const word of words) {
+      const wt = tokenizeGPT(word + ' ');
+      if (count + wt > limit) break;
+      result.push(word);
+      count += wt;
+    }
+    return result.join(' ');
+  }
+
+  function copyTrimmed() {
+    const text = document.getElementById('trimResult').value;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Copied!');
+    });
+  }
+
+  function replaceWithTrimmed() {
+    const text = document.getElementById('trimResult').value;
+    document.getElementById('inputText').value = text;
+    document.getElementById('trimOutput').classList.remove('show');
+    document.getElementById('trimSavings').innerHTML = '';
+    onInput();
+  }
+
+  // Enable trim button when there's text
+  document.getElementById('inputText').addEventListener('input', () => {
+    const has = document.getElementById('inputText').value.trim().length > 0;
+    document.getElementById('trimBtn').disabled = !has;
+  });
+
+  // Checkbox active state
+  document.querySelectorAll('.trim-option input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      cb.closest('.trim-option').classList.toggle('active', cb.checked);
+    });
+  });
+
+  // Toast
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:2rem;right:2rem;background:#1e0a0a;border:1px solid rgba(255,34,68,0.3);color:#fff0f2;padding:10px 18px;border-radius:10px;font-size:13px;z-index:999;font-family:Inter,sans-serif;';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2000);
+  }
+
+  // Init
+  onInput();
+</script>
+</body>
+</html>
