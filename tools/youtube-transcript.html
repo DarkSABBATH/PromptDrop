@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Transcript — Promptdrop</title>
+  <meta name="description" content="Extract the full transcript from any YouTube video as plain text or Markdown. Free, instant, no signup. Perfect for summarising with AI." />
+  <meta name="keywords" content="youtube transcript, youtube to text, video transcript extractor, youtube captions, ai summarise youtube, free transcript tool" />
+  <link rel="canonical" href="https://promptdrop.vercel.app/tools/youtube-transcript.html" />
+  <meta property="og:title" content="YouTube Transcript — Promptdrop" />
+  <meta property="og:description" content="Extract the full transcript from any YouTube video. Free, instant, AI-ready." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0808'/%3E%3Cpath d='M8 24 L16 8 L24 24' stroke='%23ff2244' stroke-width='2.5' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M11 19 L21 19' stroke='%23ff66aa' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0a0808;
+      --bg2:     #120808;
+      --bg3:     #1e0a0a;
+      --bg4:     #2a0c0c;
+      --border:  rgba(220,0,0,0.12);
+      --border2: rgba(220,0,0,0.25);
+      --border3: rgba(220,0,0,0.4);
+      --red:     #ff2244;
+      --red2:    #cc0033;
+      --pink:    #ff66aa;
+      --text:    #fff0f2;
+      --text2:   #cc9aa5;
+      --text3:   #7a5560;
+      --font-d:  'Sora', sans-serif;
+      --font-b:  'Inter', sans-serif;
+      --font-m:  'JetBrains Mono', monospace;
+      --r:       10px;
+      --rl:      16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-b);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,34,68,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,34,68,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+    * { position: relative; z-index: 1; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,8,8,0.9);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 52px;
+    }
+    .back-link {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500;
+      color: var(--text3); text-decoration: none;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--text2); }
+    .nav-brand {
+      font-family: var(--font-d);
+      font-size: 16px; font-weight: 800;
+      color: var(--text); text-decoration: none;
+      letter-spacing: -0.03em;
+    }
+    .nav-brand span { color: var(--red); }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 720px; margin: 0 auto;
+      padding: 4rem 1.5rem 2.5rem;
+      text-align: center;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-m);
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--pink);
+      background: rgba(255,102,170,0.07);
+      border: 1px solid rgba(255,102,170,0.18);
+      border-radius: 100px;
+      padding: 5px 14px; margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-family: var(--font-d);
+      font-size: clamp(1.9rem, 4vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.04em;
+      color: var(--text); margin-bottom: 1rem;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--red), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 15px; color: var(--text2);
+      max-width: 480px; margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── MAIN ── */
+    .main {
+      max-width: 900px; margin: 0 auto;
+      padding: 0 1.5rem 5rem;
+    }
+
+    /* ── INPUT CARD ── */
+    .input-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .url-row {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .url-input-wrap {
+      flex: 1; min-width: 0;
+      display: flex; align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      padding: 0 14px;
+      transition: border-color 0.15s;
+    }
+    .url-input-wrap:focus-within { border-color: var(--border3); }
+    .yt-icon {
+      font-size: 16px; flex-shrink: 0;
+      padding-right: 10px;
+      border-right: 1px solid var(--border);
+      margin-right: 10px;
+      line-height: 44px;
+    }
+    .url-input {
+      flex: 1; min-width: 0;
+      background: transparent; border: none; outline: none;
+      color: var(--text);
+      font-family: var(--font-m);
+      font-size: 13px; height: 44px;
+    }
+    .url-input::placeholder { color: var(--text3); }
+    .url-clear {
+      background: none; border: none;
+      color: var(--text3); cursor: pointer;
+      font-size: 16px; padding: 0 4px;
+      transition: color 0.15s; flex-shrink: 0;
+    }
+    .url-clear:hover { color: var(--text2); }
+
+    .btn-convert {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 600;
+      padding: 10px 22px;
+      background: var(--red); color: #fff;
+      border: none; border-radius: var(--r);
+      cursor: pointer; transition: background 0.15s;
+      font-family: var(--font-b); white-space: nowrap;
+    }
+    .btn-convert:hover:not(:disabled) { background: var(--red2); }
+    .btn-convert:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .url-examples {
+      margin-top: 12px;
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    }
+    .url-examples span { font-size: 12px; color: var(--text3); font-family: var(--font-m); }
+    .example-link {
+      font-size: 12px; color: var(--text3); font-family: var(--font-m);
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .example-link:hover { color: var(--text2); border-color: var(--border2); }
+
+    /* ── OPTIONS ── */
+    .options-row {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+      padding-top: 1rem; margin-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .options-label { font-size: 12px; color: var(--text3); font-family: var(--font-m); }
+    .opt-btn {
+      font-size: 12px; font-weight: 500;
+      padding: 5px 12px; border-radius: 7px;
+      border: 1px solid var(--border2);
+      background: var(--bg3); color: var(--text3);
+      cursor: pointer; transition: all 0.15s;
+      font-family: var(--font-b);
+    }
+    .opt-btn.active { background: rgba(255,34,68,0.08); border-color: var(--border3); color: var(--red); }
+    .opt-btn:hover:not(.active) { color: var(--text2); border-color: var(--border2); }
+
+    /* ── STATUS ── */
+    .status-bar {
+      display: none; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--r); margin-bottom: 1.5rem;
+      font-size: 13px; color: var(--text2); font-family: var(--font-m);
+    }
+    .status-bar.show { display: flex; }
+    .status-bar.error { border-color: rgba(255,34,68,0.3); color: var(--red); }
+    .status-bar.success { border-color: rgba(74,222,128,0.2); color: #4ade80; }
+    .spinner {
+      width: 14px; height: 14px; flex-shrink: 0;
+      border: 2px solid var(--border3);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESULT ── */
+    .result-card {
+      display: none;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--rl); overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .result-card.show { display: block; }
+
+    .result-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; gap: 8px;
+    }
+    .result-meta { display: flex; flex-direction: column; gap: 3px; }
+    .result-title {
+      font-family: var(--font-d); font-size: 13px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.02em;
+    }
+    .result-stats {
+      font-family: var(--font-m); font-size: 11px; color: var(--text3);
+      display: flex; gap: 10px;
+    }
+    .result-actions { display: flex; gap: 8px; }
+    .btn-sm {
+      font-size: 12px; font-weight: 500; padding: 5px 12px;
+      border-radius: 7px; border: 1px solid var(--border2);
+      background: var(--bg3); color: var(--text3);
+      cursor: pointer; transition: all 0.15s; font-family: var(--font-b);
+    }
+    .btn-sm:hover { color: var(--text); background: var(--bg4); border-color: var(--border3); }
+
+    /* ── TRANSCRIPT OUTPUT ── */
+    .transcript-box {
+      padding: 1.5rem;
+      max-height: 500px; overflow-y: auto;
+      font-size: 14px; line-height: 1.85;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--font-b);
+    }
+    .transcript-box.with-timestamps {
+      font-family: var(--font-m);
+      font-size: 13px;
+    }
+    .ts-line { margin-bottom: 6px; }
+    .ts-time {
+      color: var(--red); font-weight: 500;
+      margin-right: 10px; flex-shrink: 0;
+    }
+
+    /* ── VIDEO INFO ── */
+    .video-info {
+      display: none;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: none; align-items: center; gap: 1rem;
+    }
+    .video-info.show { display: flex; }
+    .video-thumb {
+      width: 80px; height: 54px; object-fit: cover;
+      border-radius: 6px; flex-shrink: 0;
+      background: var(--bg3);
+    }
+    .video-details { flex: 1; min-width: 0; }
+    .video-title {
+      font-size: 13px; font-weight: 600;
+      color: var(--text); margin-bottom: 4px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .video-channel {
+      font-size: 12px; color: var(--text3); font-family: var(--font-m);
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-section {
+      margin-top: 3rem; padding-top: 3rem;
+      border-top: 1px solid var(--border);
+    }
+    .section-label {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;
+    }
+    .section-label .line { flex: 1; height: 1px; background: var(--border); }
+    .section-label span {
+      font-family: var(--font-m); font-size: 11px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text3); white-space: nowrap;
+    }
+    .how-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px;
+    }
+    .how-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1.25rem;
+    }
+    .how-card .icon { font-size: 1.4rem; margin-bottom: 10px; display: block; }
+    .how-card h3 { font-family: var(--font-d); font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .how-card p { font-size: 12px; color: var(--text3); line-height: 1.6; }
+
+    /* ── FOOTER ── */
+    footer { border-top: 1px solid var(--border); padding: 1.5rem; }
+    .footer-inner {
+      max-width: 900px; margin: 0 auto;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-logo {
+      font-family: var(--font-d); font-size: 14px; font-weight: 700;
+      color: var(--text3); text-decoration: none; letter-spacing: -0.02em;
+    }
+    .footer-logo span { color: var(--red); }
+    .footer-copy { font-size: 12px; color: var(--text3); font-family: var(--font-m); }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 3px; }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .hero { padding: 3rem 1rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="back-link" href="../index.html">← All tools</a>
+  <a class="nav-brand" href="../index.html">Prompt<span>drop</span></a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">▶ YouTube Tool</div>
+  <h1>Any YouTube video.<br /><em>Full transcript.</em></h1>
+  <p class="hero-sub">Paste a YouTube URL and get the full transcript as clean text — with or without timestamps. Ready to summarise, analyse, or feed into any AI.</p>
+</section>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- INPUT -->
+  <div class="input-card">
+    <div class="url-row">
+      <div class="url-input-wrap">
+        <span class="yt-icon">▶</span>
+        <input
+          type="url"
+          class="url-input"
+          id="urlInput"
+          placeholder="https://www.youtube.com/watch?v=..."
+          oninput="onUrlInput()"
+          onkeydown="if(event.key==='Enter') extract()"
+        />
+        <button class="url-clear" id="clearBtn" onclick="clearUrl()" style="display:none">✕</button>
+      </div>
+      <button class="btn-convert" id="extractBtn" onclick="extract()" disabled>
+        → Extract
+      </button>
+    </div>
+
+    <div class="url-examples">
+      <span>Try:</span>
+      <span class="example-link" onclick="setUrl('https://www.youtube.com/watch?v=aircAruvnKk')">3Blue1Brown</span>
+      <span class="example-link" onclick="setUrl('https://www.youtube.com/watch?v=kCc8FmEb1nY')">Andrej Karpathy</span>
+      <span class="example-link" onclick="setUrl('https://www.youtube.com/watch?v=OFS90-FX6pg')">CGP Grey</span>
+    </div>
+
+    <div class="options-row">
+      <span class="options-label">Format:</span>
+      <button class="opt-btn active" id="opt-plain" onclick="setFormat('plain')">Plain text</button>
+      <button class="opt-btn" id="opt-timestamps" onclick="setFormat('timestamps')">With timestamps</button>
+      <button class="opt-btn" id="opt-markdown" onclick="setFormat('markdown')">Markdown</button>
+    </div>
+  </div>
+
+  <!-- VIDEO INFO -->
+  <div class="video-info" id="videoInfo">
+    <img class="video-thumb" id="videoThumb" src="" alt="" />
+    <div class="video-details">
+      <div class="video-title" id="videoTitle"></div>
+      <div class="video-channel" id="videoChannel"></div>
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar" id="statusBar">
+    <span class="spinner" id="statusSpinner"></span>
+    <span id="statusText">Fetching transcript...</span>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <div class="result-meta">
+        <div class="result-title" id="resultTitle">Transcript</div>
+        <div class="result-stats">
+          <span id="statWords">0 words</span>
+          <span>·</span>
+          <span id="statTokens">0 tokens</span>
+          <span>·</span>
+          <span id="statSegments">0 segments</span>
+        </div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-sm" onclick="downloadTxt()">⬇ .txt</button>
+        <button class="btn-sm" onclick="downloadMd()">⬇ .md</button>
+        <button class="btn-sm" id="copyBtn" onclick="copyTranscript()">📋 Copy</button>
+      </div>
+    </div>
+    <div class="transcript-box" id="transcriptBox"></div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-section">
+    <div class="section-label">
+      <div class="line"></div>
+      <span>How it works</span>
+      <div class="line"></div>
+    </div>
+    <div class="how-grid">
+      <div class="how-card">
+        <span class="icon">▶</span>
+        <h3>Paste any YouTube URL</h3>
+        <p>Standard youtube.com links and youtu.be short links both work. The video must have captions available.</p>
+      </div>
+      <div class="how-card">
+        <span class="icon">📝</span>
+        <h3>Auto or manual captions</h3>
+        <p>Works with auto-generated captions and manually uploaded subtitles. Most videos have at least one available.</p>
+      </div>
+      <div class="how-card">
+        <span class="icon">⏱</span>
+        <h3>Timestamps optional</h3>
+        <p>Get clean plain text for AI, or keep timestamps for reference and navigation through long videos.</p>
+      </div>
+      <div class="how-card">
+        <span class="icon">🤖</span>
+        <h3>AI-ready output</h3>
+        <p>Paste straight into Claude or GPT to summarise, extract key points, translate, or ask questions about the video.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a class="footer-logo" href="../index.html">Prompt<span>drop</span></a>
+    <span class="footer-copy">Only works with videos that have captions enabled</span>
+  </div>
+</footer>
+
+<div id="toast" style="position:fixed;bottom:2rem;right:2rem;background:#1e0a0a;border:1px solid rgba(255,34,68,0.3);color:#fff0f2;padding:10px 18px;border-radius:10px;font-size:13px;z-index:999;font-family:Inter,sans-serif;opacity:0;pointer-events:none;transition:opacity 0.2s;"></div>
+
+<script>
+  let currentFormat = 'plain';
+  let currentTranscript = [];
+  let currentVideoId = '';
+  let currentTitle = '';
+
+  // ── URL handling ───────────────────────────
+  function extractVideoId(url) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('?')[0];
+      return u.searchParams.get('v');
+    } catch { return null; }
+  }
+
+  function onUrlInput() {
+    const val = document.getElementById('urlInput').value.trim();
+    const id = extractVideoId(val);
+    document.getElementById('extractBtn').disabled = !id;
+    document.getElementById('clearBtn').style.display = val ? 'block' : 'none';
+  }
+
+  function clearUrl() {
+    document.getElementById('urlInput').value = '';
+    document.getElementById('clearBtn').style.display = 'none';
+    document.getElementById('extractBtn').disabled = true;
+    document.getElementById('resultCard').classList.remove('show');
+    document.getElementById('videoInfo').classList.remove('show');
+    hideStatus();
+    currentTranscript = [];
+  }
+
+  function setUrl(url) {
+    document.getElementById('urlInput').value = url;
+    onUrlInput();
+    extract();
+  }
+
+  function setFormat(fmt) {
+    currentFormat = fmt;
+    ['plain','timestamps','markdown'].forEach(f => {
+      document.getElementById('opt-' + f).classList.toggle('active', f === fmt);
+    });
+    if (currentTranscript.length > 0) renderTranscript();
+  }
+
+  // ── Extract ────────────────────────────────
+  async function extract() {
+    const url = document.getElementById('urlInput').value.trim();
+    const videoId = extractVideoId(url);
+    if (!videoId) return;
+
+    currentVideoId = videoId;
+    document.getElementById('extractBtn').disabled = true;
+    document.getElementById('resultCard').classList.remove('show');
+    document.getElementById('videoInfo').classList.remove('show');
+    showStatus('Fetching transcript...', 'loading');
+
+    // Show video thumbnail immediately
+    showVideoInfo(videoId);
+
+    try {
+      const transcript = await fetchTranscript(videoId);
+      if (!transcript || transcript.length === 0) {
+        showStatus('No captions found for this video. Try a video with captions enabled.', 'error');
+        document.getElementById('extractBtn').disabled = false;
+        return;
+      }
+      currentTranscript = transcript;
+      renderTranscript();
+      hideStatus();
+    } catch(e) {
+      showStatus('Could not fetch transcript — ' + (e.message || 'try another video'), 'error');
+    }
+
+    document.getElementById('extractBtn').disabled = false;
+  }
+
+  // ── Fetch transcript via proxy ─────────────
+  async function fetchTranscript(videoId) {
+    // Fetch YouTube page to get caption track URL
+    const pageUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(pageUrl)}`;
+
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) throw new Error('Could not reach YouTube');
+
+    const data = await res.json();
+    const html = data.contents;
+
+    // Extract video title
+    const titleMatch = html.match(/"title":"([^"]+)"/);
+    if (titleMatch) {
+      currentTitle = titleMatch[1].replace(/\\n/g, ' ').replace(/\\u0026/g, '&');
+      document.getElementById('videoTitle').textContent = currentTitle;
+    }
+
+    // Extract channel name
+    const channelMatch = html.match(/"ownerChannelName":"([^"]+)"/);
+    if (channelMatch) {
+      document.getElementById('videoChannel').textContent = channelMatch[1];
+    }
+
+    // Find caption track URL
+    const captionMatch = html.match(/"captionTracks":\[({[^}]+})/);
+    if (!captionMatch) throw new Error('No captions available for this video');
+
+    const baseUrlMatch = captionMatch[1].match(/"baseUrl":"([^"]+)"/);
+    if (!baseUrlMatch) throw new Error('Could not find caption URL');
+
+    let captionUrl = baseUrlMatch[1].replace(/\\u0026/g, '&').replace(/\\\//g, '/');
+
+    // Fetch the captions XML
+    const capRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(captionUrl)}`, {
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!capRes.ok) throw new Error('Could not fetch captions');
+
+    const capData = await capRes.json();
+    return parseTranscriptXml(capData.contents);
+  }
+
+  // ── Parse XML captions ─────────────────────
+  function parseTranscriptXml(xml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'text/xml');
+    const texts = doc.querySelectorAll('text');
+    const segments = [];
+    texts.forEach(t => {
+      const start = parseFloat(t.getAttribute('start') || 0);
+      const dur = parseFloat(t.getAttribute('dur') || 0);
+      const text = t.textContent
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+        .replace(/\n/g, ' ').trim();
+      if (text) segments.push({ start, dur, text });
+    });
+    return segments;
+  }
+
+  // ── Render transcript ──────────────────────
+  function renderTranscript() {
+    const box = document.getElementById('transcriptBox');
+    const segs = currentTranscript;
+
+    let output = '';
+    const words = segs.map(s => s.text).join(' ').split(/\s+/).filter(Boolean).length;
+    const tokens = Math.round(segs.map(s => s.text).join(' ').length / 4);
+
+    document.getElementById('statWords').textContent = words.toLocaleString() + ' words';
+    document.getElementById('statTokens').textContent = tokens.toLocaleString() + ' tokens';
+    document.getElementById('statSegments').textContent = segs.length.toLocaleString() + ' segments';
+    document.getElementById('resultTitle').textContent = currentTitle || 'Transcript';
+
+    if (currentFormat === 'plain') {
+      output = segs.map(s => s.text).join(' ').replace(/\s+/g, ' ').trim();
+      box.className = 'transcript-box';
+      box.textContent = output;
+    } else if (currentFormat === 'timestamps') {
+      box.className = 'transcript-box with-timestamps';
+      box.innerHTML = segs.map(s => {
+        const t = formatTime(s.start);
+        return `<div class="ts-line"><span class="ts-time">[${t}]</span>${escHtml(s.text)}</div>`;
+      }).join('');
+      output = segs.map(s => `[${formatTime(s.start)}] ${s.text}`).join('\n');
+    } else if (currentFormat === 'markdown') {
+      const title = currentTitle ? `# ${currentTitle}\n\n` : '';
+      const src = `> Source: https://www.youtube.com/watch?v=${currentVideoId}\n\n`;
+      const body = segs.map(s => s.text).join(' ').replace(/\s+/g, ' ').trim();
+      output = title + src + body;
+      box.className = 'transcript-box';
+      box.textContent = output;
+    }
+
+    // Store for download
+    box._rawText = output;
+    document.getElementById('resultCard').classList.add('show');
+    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── Video info ─────────────────────────────
+  function showVideoInfo(videoId) {
+    const thumb = document.getElementById('videoThumb');
+    thumb.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+    document.getElementById('videoTitle').textContent = 'Loading...';
+    document.getElementById('videoChannel').textContent = '';
+    document.getElementById('videoInfo').classList.add('show');
+  }
+
+  // ── Downloads ──────────────────────────────
+  function getFilename() {
+    return (currentTitle || 'transcript').replace(/[^a-z0-9]/gi, '-').toLowerCase().slice(0, 40);
+  }
+  function downloadTxt() {
+    const text = document.getElementById('transcriptBox')._rawText || '';
+    dl(text, getFilename() + '.txt', 'text/plain');
+  }
+  function downloadMd() {
+    const title = currentTitle ? `# ${currentTitle}\n\n` : '';
+    const src = `> Source: https://www.youtube.com/watch?v=${currentVideoId}\n\n`;
+    const body = currentTranscript.map(s => s.text).join(' ').replace(/\s+/g, ' ').trim();
+    dl(title + src + body, getFilename() + '.md', 'text/markdown');
+  }
+  function dl(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  function copyTranscript() {
+    const text = document.getElementById('transcriptBox')._rawText || '';
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '✓ Copied';
+      setTimeout(() => btn.textContent = '📋 Copy', 2000);
+      showToast('Copied to clipboard');
+    });
+  }
+
+  // ── Helpers ────────────────────────────────
+  function formatTime(secs) {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = Math.floor(secs % 60);
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${m}:${String(s).padStart(2,'0')}`;
+  }
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function showStatus(msg, type) {
+    const bar = document.getElementById('statusBar');
+    document.getElementById('statusText').textContent = msg;
+    bar.className = 'status-bar show ' + (type || '');
+    document.getElementById('statusSpinner').style.display = type === 'loading' ? 'block' : 'none';
+  }
+  function hideStatus() { document.getElementById('statusBar').classList.remove('show'); }
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.opacity = '1'; t.style.pointerEvents = 'auto';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.opacity = '0'; t.style.pointerEvents = 'none'; }, 2500);
+  }
+</script>
+</body>
+</html>
