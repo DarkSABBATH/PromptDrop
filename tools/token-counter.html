@@ -934,28 +934,20 @@ Modern large language models like GPT-4, Claude, and Gemini are built on this fo
 
     const before = tokenizeGPT(text);
 
-    if (document.getElementById('opt-whitespace').checked) {
-      text = text.replace(/[ \t]+/g, ' ');
-      text = text.replace(/[ \t]+$/gm, '');
+    // Always run all safe optimisations
+    text = text.replace(/[ \t]+/g, ' ');
+    text = text.replace(/[ \t]+$/gm, '');
+    text = text.replace(/\n{3,}/g, '\n\n');
+    text = text.replace(/[—–•·※†‡§¶]/g, '-');
+    text = text.replace(/[""]/g, '"');
+    text = text.replace(/['']/g, "'");
+    text = text.replace(/…/g, '...');
+    for (const pattern of FILLER_PHRASES) {
+      text = text.replace(pattern, '');
     }
-    if (document.getElementById('opt-newlines').checked) {
-      text = text.replace(/\n{3,}/g, '\n\n');
-    }
-    if (document.getElementById('opt-punct').checked) {
-      text = text.replace(/[—–•·※†‡§¶]/g, '-');
-      text = text.replace(/[""]/g, '"');
-      text = text.replace(/['']/g, "'");
-      text = text.replace(/…/g, '...');
-    }
-    if (document.getElementById('opt-filler').checked) {
-      for (const pattern of FILLER_PHRASES) {
-        text = text.replace(pattern, '');
-      }
-      text = text.replace(/  +/g, ' ').replace(/\n +/g, '\n');
-    }
-    if (document.getElementById('opt-lowercase').checked) {
-      text = text.toLowerCase();
-    }
+    text = text.replace(/  +/g, ' ').replace(/\n +/g, '\n');
+
+    // Optional truncation
     if (document.getElementById('opt-truncate').checked) {
       const limit = parseInt(document.getElementById('targetModel').value);
       text = truncateToTokens(text, limit);
