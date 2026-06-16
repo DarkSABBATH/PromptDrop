@@ -3,6 +3,7 @@
   "routes": [
     { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
     { "src": "/robots.txt", "dest": "/robots.txt" },
+    { "src": "/google3a7f1ede5fcad274.html", "dest": "/google3a7f1ede5fcad274.html" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }
