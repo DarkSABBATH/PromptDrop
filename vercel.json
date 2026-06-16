@@ -1,9 +1,14 @@
 {
   "version": 2,
+  "cleanUrls": false,
+  "trailingSlash": false,
   "routes": [
+    { "src": "/google3a7f1ede5fcad274.html", "dest": "/google3a7f1ede5fcad274.html" },
     { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
     { "src": "/robots.txt", "dest": "/robots.txt" },
-    { "src": "/google3a7f1ede5fcad274.html", "dest": "/google3a7f1ede5fcad274.html" },
-    { "src": "/(.*)", "dest": "/$1" }
+    { "src": "/tools/(.*)", "dest": "/tools/$1" },
+    { "src": "/", "dest": "/index.html" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
